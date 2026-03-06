@@ -19,10 +19,10 @@ BMO is a custom module for the [BMAD Method](https://github.com/bmad-code-org/bm
 
 ### Install as Custom Module
 
-1. Clone this repo somewhere on your machine:
+1. Clone this repo anywhere on your machine:
 
 ```bash
-git clone https://github.com/ramagepe/bmad-multi-mate-orchestration.git ~/bmad-modules/bmo
+git clone https://github.com/ramagepe/bmad-multi-mate-orchestration.git
 ```
 
 2. Run the BMAD installer (new install or modify existing):
@@ -31,10 +31,10 @@ git clone https://github.com/ramagepe/bmad-multi-mate-orchestration.git ~/bmad-m
 npx bmad-method install
 ```
 
-3. When prompted about custom modules, select **"Add new custom modules"** and enter the path to the `src/` directory:
+3. When prompted *"Would you like to install a local custom module?"*, select **Yes** and enter the path to the `src/` directory inside the cloned repo:
 
 ```
-~/bmad-modules/bmo/src
+/path/to/bmad-multi-mate-orchestration/src
 ```
 
 4. The installer will:
