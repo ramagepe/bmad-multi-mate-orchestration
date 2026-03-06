@@ -1,0 +1,53 @@
+code: bmo
+name: "BMO: Multi-Mate Orchestration"
+description: "Parallel multi-agent workflow composition with git worktree isolation"
+default_selected: false
+
+# Variables from Core Config inserted automatically by installer:
+## user_name
+## communication_language
+## document_output_language
+## output_folder
+
+# BMO-specific configuration variables
+
+max_parallel_agents:
+  prompt: "Maximum concurrent sub-agents for parallel execution?"
+  default: 3
+  result: "{value}"
+  single-select:
+    - value: 2
+      label: "2 - Conservative (lower context pressure)"
+    - value: 3
+      label: "3 - Balanced (Recommended)"
+    - value: 4
+      label: "4 - Aggressive (higher context pressure)"
+
+max_correction_loops:
+  prompt: "Maximum review-fix iterations before human escalation?"
+  default: 3
+  result: "{value}"
+  single-select:
+    - value: 2
+      label: "2 - Strict (escalate quickly)"
+    - value: 3
+      label: "3 - Balanced (Recommended)"
+    - value: 5
+      label: "5 - Patient (more retry tolerance)"
+
+sub_agent_timeout_minutes:
+  prompt: "Timeout in minutes for sub-agent execution?"
+  default: 30
+  result: "{value}"
+  single-select:
+    - value: 15
+      label: "15 - Fast tasks only"
+    - value: 30
+      label: "30 - Standard (Recommended)"
+    - value: 60
+      label: "60 - Complex tasks with large codebases"
+
+worktree_base_path:
+  prompt: "Base directory for git worktrees (relative to project root)?"
+  default: ".claude/worktrees"
+  result: "{project-root}/{value}"

@@ -1,0 +1,29 @@
+{
+  "name": "bmad-multi-mate-orchestration",
+  "version": "1.0.0",
+  "description": "BMO: Multi-Agent Orchestration module for BMAD Method - parallel workflow composition with git worktree isolation",
+  "keywords": [
+    "bmad",
+    "orchestration",
+    "multi-agent",
+    "workflow",
+    "git-worktree"
+  ],
+  "license": "MIT",
+  "author": "ramagepe",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ramagepe/bmad-multi-mate-orchestration.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ramagepe/bmad-multi-mate-orchestration/issues"
+  },
+  "homepage": "https://github.com/ramagepe/bmad-multi-mate-orchestration#readme",
+  "main": "",
+  "bin": {},
+  "scripts": {
+    "release:patch": "npm version patch && git push --follow-tags",
+    "release:minor": "npm version minor && git push --follow-tags",
+    "release:major": "npm version major && git push --follow-tags"
+  }
+}
