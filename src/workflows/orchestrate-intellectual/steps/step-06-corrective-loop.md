@@ -100,43 +100,46 @@ For each story needing correction, dispatch via Task tool with ENHANCED contract
 ## Corrective Document Processor Contract
 
 **Role:** Document Processor — CORRECTION MODE
-**Story:** {story_file_path}
-**Output Path:** {output_path}
+**Story file to correct:** {stories_output_path}/{story_key}.md
 **Correction Iteration:** {loop_count} of {max_correction_loops}
 
 ### Context: You are FIXING issues found in cross-validation
 
-Your previous artifacts were validated against other stories in the same epic
-and the following issues were found. You MUST revise your artifacts to resolve
+Your previously created story file was validated against other stories in the same epic
+and the following issues were found. You MUST revise the story file to resolve
 these issues while maintaining correctness of your original work.
 
 ### Cross-Validation Feedback to Address:
 
 {For each issue affecting this story:}
 **[{severity}] {type}**: {description}
+  Resolution type: {AUTO-RESOLVED | HUMAN-DECIDED}
   Related stories: {related_story_ids}
-  Your artifact: {artifact_path}
+  Your story file: {stories_output_path}/{story_key}.md
   Relevant section: {section reference}
   Recommendation: {recommendation from cross-validator}
+  Authoritative source: {e.g., "architecture.md § Module System" or "User decision: chose option A"}
+  
+> ⚠️ You MUST apply the recommendation as stated — it was validated against the authoritative source. Do NOT re-interpret or substitute your own judgment. If the recommendation is impossible to apply, report it as a `remaining_concern` instead of silently ignoring it.
 
 ### Other Story Context (for alignment)
 
 {For each related story — provide READ-ONLY context:}
 - **{related-story-id}**: 
-  Artifacts: {artifact_path}
-  Summary: {artifact summary}
+  Story file: {stories_output_path}/{related_story_key}.md
+  Summary: {story summary}
   Key terms: {relevant terminology from that story}
 
-### Your Output Path
-{output_path} — same as before. Your previous artifacts are here.
-Revise them in-place or create corrected versions.
+### Your Output
+Modify the story file at `{stories_output_path}/{story_key}.md` in-place.
+This is the same file you created — revise it directly.
 
 ### CRITICAL RESTRICTIONS (same as original)
 - ✅ You MAY: read any file in the project for context
-- ✅ You MAY: read OTHER stories' artifacts for alignment (READ-ONLY)
-- ✅ You MAY: modify/overwrite files in {output_path}
-- 🛑 You MUST NOT: modify files outside {output_path}
-- 🛑 You MUST NOT: modify other stories' artifacts
+- ✅ You MAY: read OTHER stories' files for alignment (READ-ONLY)
+- ✅ You MAY: modify the story file at {stories_output_path}/{story_key}.md
+- 🛑 You MUST NOT: modify other stories' files
+- 🛑 You MUST NOT: modify files outside {stories_output_path}/
 - 🛑 You MUST NOT: perform any git operations
 
 ### Exit Criteria for Correction
@@ -158,6 +161,8 @@ correction_report:
   issues_addressed:
     - issue: "{description from feedback}"
       resolution: "How it was resolved in the artifact"
+      resolution_type: "auto"  # or "human-decided"
+      authoritative_source: "architecture.md § Module System"  # What justified the decision
       artifact_modified: "{file path}"
   artifacts_modified: list[string]
   artifacts_created: list[string]
@@ -166,25 +171,22 @@ correction_report:
 ```
 ```
 
-### 3. Verify Corrected Artifacts
+### 3. Verify Corrected Story File
 
-After processor completes, verify revised artifacts exist and were actually modified:
+After processor completes, verify the revised story file exists and was actually modified:
 
 ```bash
-# Check artifacts in output path
-ls -la {output_path}
+# Check story file exists and get size/mtime
+ls -la {stories_output_path}/{story_key}.md
 
-# List all artifact files with sizes and modification times
-ls -lt {output_path}
-
-# Check for empty files (sign of failed generation)
-find {output_path} -type f -empty
+# Check file is not empty
+test -s {stories_output_path}/{story_key}.md
 ```
 
 **Verification criteria:**
-- Artifact files exist and are non-empty
-- At least one file was modified (compare `ls -lt` output against pre-correction listing)
-- No artifacts were deleted during correction
+- Story file exists and is non-empty
+- File modification time is newer than pre-correction timestamp
+- File size is reasonable (not truncated)
 
 ### 4. Re-Dispatch Targeted Cross-Validator
 
@@ -256,6 +258,12 @@ corrective_state:
   stories_resolved: list[string]
   stories_for_escalation: list[{story_id, remaining_issues, loop_count}]
   stories_dropped: list[string]
+  auto_resolved_decisions:  # For step-08 summary report — audit trail
+    - issue: "{description}"
+      resolution: "{what was done}"
+      authoritative_source: "{source that justified the decision}"
+      stories_affected: list[string]
+      iteration_resolved: int
 ```
 
 ### 8. Route to Next Step

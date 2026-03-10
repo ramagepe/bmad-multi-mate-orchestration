@@ -55,6 +55,10 @@ All file operations, all git commands — everything happens in this directory.
 - 🛑 You MUST NOT: `git branch`, `git checkout`, `git fetch`, `git pull`, `git push`
 - 🛑 You MUST NOT: modify files outside {worktree_path}
 - 🛑 You MUST NOT: install global packages or modify system state
+- 🛑 SUBAGENT-STOP: You are a SUB-AGENT dispatched for a specific task.
+  Do NOT invoke BMO orchestration workflows or BMAD agent menus.
+  Do NOT dispatch your own sub-agents via Task tool.
+  Complete YOUR assigned task and report back. Nothing else.
 
 ### Scope Boundaries
 **Writable paths (relative to worktree root):**

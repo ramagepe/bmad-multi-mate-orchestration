@@ -49,10 +49,7 @@ Dispatch via Task tool with this contract:
 
 {For each processed story:}
 - **{story-id}**: 
-  Original story: {story_file_path}
-  Artifacts: {output_path}
-  Artifact files:
-    {list of artifact files with brief descriptions}
+  Story file: {stories_output_path}/{story_key}.md
   Processing summary: {summary from processing_report}
 
 ### CRITICAL RESTRICTIONS
@@ -61,6 +58,10 @@ Dispatch via Task tool with this contract:
 - 🛑 You MUST NOT: modify any files — artifacts, stories, or anything else
 - 🛑 You MUST NOT: perform any git operations
 - 🛑 You MUST NOT: create new files (your output is the report below)
+- 🛑 SUBAGENT-STOP: You are a SUB-AGENT dispatched for a specific task.
+  Do NOT invoke BMO orchestration workflows or BMAD agent menus.
+  Do NOT dispatch your own sub-agents via Task tool.
+  Complete YOUR assigned task and report back. Nothing else.
 
 ### Your Mission
 
@@ -90,6 +91,13 @@ Examine all processed story artifacts as a COHESIVE SET and validate:
    - Re-read the epic file
    - Map each epic goal to story artifacts
    - Identify any gaps in coverage
+
+6. **File Ownership Clarity**: For shared files modified by multiple stories, verify ownership is unambiguous
+   - Each shared file should have exactly ONE story that CREATEs it
+   - Subsequent stories must use VERIFY/MODIFY/ADD — never a second CREATE for the same file
+   - Each VERIFY/MODIFY/ADD should reference the owning story (e.g., `[Owner: Story 1.1]`)
+   - Check the File List table in each story for correct action verbs
+   - Flag files where ownership is ambiguous, contested, or where multiple stories CREATE the same file
 
 ### How to Examine
 
@@ -142,6 +150,12 @@ cross_validation_report:
     - description: "Story B references 'auth token format' from Story A but format differs"
       stories: list[string]
       recommendation: "Align token format specification"
+  file_ownership_issues:
+    - file: "path/to/shared/file.ts"
+      description: "Multiple stories CREATE this file instead of one CREATE + others VERIFY/MODIFY"
+      stories: list[string]
+      canonical_owner: "{story-id that should CREATE}"
+      recommendation: "Story X CREATEs, others use VERIFY/MODIFY with [Owner: Story X]"
   recommendations:
     - "Recommendation 1"
     - "Recommendation 2"
@@ -194,11 +208,10 @@ Gather all information the cross-validator needs:
 validation_context:
   epic_file: "{epic_path}"
   epic_context: "{epic_context from step 1}"
+  stories_output_path: "{stories_output_path}"  # Directory containing all story files
   stories:
     - id: "{story-id-1}"
-      story_file: "{path}"
-      output_path: "{output_folder}/{story-id-1}/"
-      artifacts: list[{path, description}]  # from collection step
+      story_file: "{stories_output_path}/{story-key-1}.md"
       ac_coverage: "{percentage}"
       processing_summary: "{from step 4}"
     - id: "{story-id-2}"
@@ -229,20 +242,56 @@ Options:
 - **S**: Skip validation, proceed to summary report with flag `validation_skipped: true`
 - **M**: User validates manually, then tells orchestrator coherent/issues_found
 
-### 5. Process Validation Report
+### 5. Persist Full Cross-Validation Analysis
 
-Parse the `cross_validation_report` and classify issues:
+🛑 **IMMEDIATELY after receiving the cross-validator's output**, write the COMPLETE analysis to disk — not just the YAML summary. The sub-agent's full output includes narrative analysis, file-by-file comparisons, code snippet comparisons, and reasoning that explains WHY each issue exists. This is critical audit trail that does not survive the session otherwise.
 
-| Issue Type | Severity | Action |
-|-----------|----------|--------|
-| Conflicts (critical) | 🔴 | Must resolve before completing |
-| Conflicts (major) | 🟡 | Should resolve, user decides |
-| Gaps (major) | 🟡 | May need additional stories |
-| Duplicate requirements | 🟡 | User decides which to keep |
-| Terminology inconsistencies | 🟡 | Should standardize |
-| Dependency issues | 🔴 | Must resolve — artifacts reference incorrect data |
+**Write to:** `{output_folder}/_orchestration/cross-validation-report.md`
 
-### 6. Present Cross-Validation Results
+**Content structure:**
+```markdown
+# Cross-Validation Report — {epic_name}
+Generated: {timestamp}
+Stories validated: {count}
+
+## Analysis
+
+{FULL narrative analysis from the cross-validator sub-agent — every section,
+every file comparison, every code snippet, every observation. Do NOT summarize
+or truncate. Copy the sub-agent's complete analysis output verbatim.}
+
+## Structured Report
+
+{The YAML cross_validation_report block from the sub-agent}
+```
+
+This file may be large. That is intentional — it serves as the permanent record of cross-validation reasoning. Step-08's summary report provides the condensed view.
+
+### 6. Process Validation Report
+
+Parse the `cross_validation_report` and classify each issue into one of two categories:
+
+**AUTO-RESOLVABLE** — The cross-validator provided a clear, unambiguous recommendation AND:
+- The fix is a content correction (terminology, syntax, conventions, file ownership)
+- The authoritative source is clear (architecture.md, epic conventions, project config)
+- No scope decisions or trade-offs are involved
+
+**NEEDS-HUMAN** — The issue requires human judgment because:
+- The cross-validator's recommendation is ambiguous or says "decide between X and Y"
+- The fix involves a scope decision (add/remove functionality)
+- Two authoritative sources contradict each other
+- The issue is a coverage gap requiring a new story
+
+| Issue Type | Severity | Auto-Resolvable? |
+|-----------|----------|-------------------|
+| Conflicts with clear fix (e.g., wrong syntax per architecture) | 🔴/🟡 | ✅ YES — auto-correct with source citation |
+| Conflicts requiring scope decision | 🔴/🟡 | ❌ NO — needs human |
+| Duplicate requirements with clear owner | 🟡 | ✅ YES — assign to canonical owner per dependency chain |
+| Terminology inconsistencies | 🟡 | ✅ YES — standardize per architecture/epic terminology |
+| Dependency issues with clear fix | 🔴 | ✅ YES — align per architecture contracts |
+| Coverage gaps requiring new stories | 🟡 | ❌ NO — needs human (scope change) |
+
+### 7. Present Cross-Validation Results
 
 ```
 🔀 CROSS-VALIDATION RESULTS
@@ -250,46 +299,19 @@ Parse the `cross_validation_report` and classify issues:
 
 Overall: {status}
 
-{if conflicts exist}
-🔴 CONTRADICTIONS DETECTED:
-  • {story-a} ↔ {story-b}: {description}
-    Artifacts: {artifact paths}
-    Recommendation: {recommendation}
-{/if}
-
-{if gaps exist}
-🟡 COVERAGE GAPS:
-  • {gap_description}
-    Affected: {stories}
-    Recommendation: {recommendation}
-{/if}
-
-{if duplicate_requirements exist}
-🟡 DUPLICATE REQUIREMENTS:
-  • {description}
-    Stories: {stories}
-    Recommendation: {recommendation}
-{/if}
-
-{if terminology_inconsistencies exist}
-🟡 TERMINOLOGY INCONSISTENCIES:
-  • "{term}" used differently in {story_a} vs {story_b}
-    Recommendation: {recommendation}
-{/if}
-
-{if dependency_issues exist}
-🔴 DEPENDENCY ISSUES:
-  • {description}
-    Stories: {stories}
-    Recommendation: {recommendation}
-{/if}
+{For each issue, grouped by severity:}
+🔴/🟡 [{AUTO|HUMAN}] {description}
+  Stories: {story_a}, {story_b}
+  Recommendation: {recommendation}
+  {if AUTO} Source: {authoritative source for the fix}
+  {if HUMAN} Reason: {why this needs human input}
 
 {if no issues}
 ✅ All stories are coherent — no contradictions, gaps, or inconsistencies detected.
 {/if}
 ```
 
-### 7. Route Based on Results
+### 8. Route Based on Results
 
 **IF status == "coherent" (no issues found):**
 
@@ -300,47 +322,67 @@ Overall: {status}
 
 Load `{skipToStepFile}` (step-08-summary-report.md).
 
-**IF status == "issues_found":**
+**IF status == "issues_found" and ALL issues are AUTO-RESOLVABLE:**
 
-Present options for critical/major issues:
+Do NOT ask the user. Proceed directly to corrective loop:
 
 ```
-⚠️ Cross-validation found issues requiring attention.
+⚠️ Cross-validation found {issue_count} issues — all auto-resolvable.
+   Entering corrective loop automatically with cross-validator recommendations...
+   Loading Step 6: Corrective Loop...
+```
 
-Options:
-[C] Enter corrective loop — re-process affected stories with feedback
-[M] Manual resolution — I'll fix the artifacts myself
-[F] Force proceed — accept current state with known issues
+Load `{nextStepFile}` with all issues queued for correction.
+
+**IF status == "issues_found" and SOME issues are NEEDS-HUMAN:**
+
+Auto-enter corrective loop for the auto-resolvable issues, then present ONLY the human-required issues:
+
+```
+⚠️ Cross-validation found {total_count} issues.
+   🤖 {auto_count} auto-resolvable — entering corrective loop automatically.
+   🧑 {human_count} need your input:
+
+{For each NEEDS-HUMAN issue:}
+  [{number}] [{severity}] {description}
+      Stories: {stories}
+      Options: {specific options for this issue}
+
+How do you want to handle the human-required issues?
+[R] Resolve now — I'll answer each one, then corrective loop handles everything
+[D] Defer — run corrective loop for auto-resolvable issues first, ask me after
+[F] Force proceed — accept all current state with known issues
 [X] Abort
 ```
 
-- **C**: Proceed to corrective loop (step 6) with validation feedback
-- **M**: User fixes artifacts manually, then re-run cross-validation
+- **R**: User provides decisions for each human issue, ALL issues enter corrective loop together
+- **D**: Corrective loop runs for auto-resolvable issues first. After loop completes, human issues are re-presented. If cross-validation shows they're resolved as a side-effect of other corrections → skip. If still open → present again.
 - **F**: Proceed to summary with flag `issues_force_accepted: true`
 - **X**: Abort workflow
 
-### 8. Store Cross-Validation State
+### 9. Store Cross-Validation State
 
 ```yaml
 cross_validation_state:
   report: {complete cross_validation_report}
   status: "coherent"  # or "issues_found"
-  critical_issues: list[{description, stories}]
-  user_decision: "corrective_loop"  # or "manual" or "force_proceed" or "abort"
-  issues_for_correction: list[{story_id, feedback}]  # Stories to re-process
+  auto_resolvable_issues: list[{description, stories, recommendation, source}]
+  human_required_issues: list[{description, stories, options, reason}]
+  user_decision: "auto_corrective"  # or "resolve_now" or "defer" or "force_proceed" or "abort"
+  issues_for_correction: list[{story_id, feedback, resolution_source}]
   validation_skipped: false
 ```
 
-### 9. Proceed to Next Step
+### 10. Proceed to Next Step
 
-**IF entering corrective loop:**
+**IF entering corrective loop (auto or after user decisions):**
 ```
-⚠️ {issue_count} issues found across {story_count} stories.
+⚠️ {issue_count} issues queued for correction ({auto_count} auto + {human_resolved_count} human-decided).
    Loading Step 6: Corrective Loop...
 ```
 Load, read completely, then execute `{nextStepFile}`.
 
-**IF skipping to summary:**
+**IF skipping to summary (coherent or force-proceed):**
 ```
 ✅ Cross-validation complete — no issues.
    Loading Step 8: Summary Report...

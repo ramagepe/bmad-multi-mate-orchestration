@@ -47,17 +47,14 @@ For each entry in `{dispatch_results}`:
 
 ### 2. Independent Artifact Verification
 
-For EACH story's output path, independently verify the sub-agent's claims:
+For EACH story, independently verify the sub-agent's claims by checking the story file:
 
 ```bash
-# Check if output directory exists and has content
-ls -la {output_path}
+# Check if story file exists and get size
+ls -la {stories_output_path}/{story_key}.md
 
-# List all artifacts produced
-find {output_path} -type f -name "*.md" -o -name "*.yaml" -o -name "*.json"
-
-# Check file sizes (empty files = failed generation)
-find {output_path} -type f -empty
+# Check file is not empty
+test -s {stories_output_path}/{story_key}.md
 ```
 
 **Build verified results:**

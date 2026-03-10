@@ -13,15 +13,15 @@ default_selected: false
 
 max_parallel_agents:
   prompt: "Maximum concurrent sub-agents for parallel execution?"
-  default: 3
+  default: 5
   result: "{value}"
   single-select:
-    - value: 2
-      label: "2 - Conservative (lower context pressure)"
     - value: 3
-      label: "3 - Balanced (Recommended)"
-    - value: 4
-      label: "4 - Aggressive (higher context pressure)"
+      label: "3 - Conservative (lower context pressure)"
+    - value: 5
+      label: "5 - Balanced (Recommended)"
+    - value: 8
+      label: "8 - Aggressive (higher context pressure)"
 
 max_correction_loops:
   prompt: "Maximum review-fix iterations before human escalation?"

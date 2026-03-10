@@ -68,8 +68,7 @@ For EACH story in `{stories_for_escalation}`:
 🚨 ESCALATION: {story-id}
 ───────────────────────────────────────
 
-Story: {story_file_path}
-Artifacts: {output_path}
+Story file: {stories_output_path}/{story_key}.md
 Correction Attempts: {loop_count} of {max_correction_loops}
 
 📜 CORRECTION HISTORY:
@@ -101,9 +100,8 @@ Iteration 3:
     Related stories: {story_ids}
     Recommendation: {validator recommendation}
 
-📄 CURRENT ARTIFACT STATE:
-  Files in {output_path}:
-  {list of current artifacts with sizes}
+📄 CURRENT STORY FILE:
+  {stories_output_path}/{story_key}.md — {file_size}
 
 ───────────────────────────────────────
 
@@ -135,9 +133,9 @@ IF confirmed:
 ```
 📝 Manual fix mode for {story-id}.
 
-Artifacts are in: {output_path}
+Story file: {stories_output_path}/{story_key}.md
 
-Edit the files as needed, then tell me when you're done.
+Edit the file as needed, then tell me when you're done.
 I'll re-run cross-validation on this story to verify.
 
 [DONE] I've finished my edits — re-validate
@@ -167,7 +165,7 @@ What specific instructions should the sub-agent follow?
 ```
 ❌ Dropping {story-id} from this orchestration run.
 
-The existing artifacts in {output_path} will be preserved
+The existing story file at {stories_output_path}/{story_key}.md will be preserved
 but NOT included in the final summary as completed.
 
 Confirm? [Y/N]
@@ -178,7 +176,7 @@ IF confirmed:
 - Artifacts remain on disk but are excluded from results
 
 **[V] View Artifacts:**
-- Read and display the content of each artifact file in `{output_path}`
+- Read and display the content of the story file at `{stories_output_path}/{story_key}.md`
 - After viewing, re-present the decision menu for this story
 
 ### 4. Present Escalation Summary

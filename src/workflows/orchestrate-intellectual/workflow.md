@@ -144,12 +144,12 @@ role: document_processor
 task_type: string           # "story_refinement" | "document_creation" | "analysis"
 story_file_path: string     # Story to process
 epic_context: string        # Summary of the epic
-workflow_to_invoke: string  # Which BMAD workflow (e.g., "create-story")
-output_path: string         # Where to write artifacts
+workflow_to_invoke: string  # Which BMAD workflow (e.g., "story-creation-panel")
+stories_output_path: string # Directory for story files ({output_folder}/implementation-artifacts/stories)
 exit_criteria:
   - "All acceptance criteria addressed in output"
   - "Output follows document standards"
-  - "Artifacts written to {output_path}"
+  - "Story file written to {stories_output_path}/{story_key}.md"
 reporting: {status, artifacts_produced, summary, issues_encountered}
 ```
 
@@ -173,8 +173,8 @@ reporting: {status, conflicts, gaps, recommendations}
 ## Security Rules
 
 1. Sub-agents NEVER perform git operations — intellectual mode is document-only
-2. Sub-agents write artifacts ONLY to their assigned `{output_path}`
-3. Sub-agents NEVER modify the original story files — only read them
+2. Sub-agents write story files ONLY to `{stories_output_path}` — their assigned output directory
+3. Sub-agents in creation mode WRITE story files; in correction mode they MODIFY existing story files
 4. Cross-validator is strictly READ-ONLY
 5. Corrective loop re-dispatch includes FULL validator feedback
 

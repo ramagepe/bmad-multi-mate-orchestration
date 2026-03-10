@@ -66,6 +66,10 @@ Dispatch via Task tool with this contract:
 - ✅ You MAY: run `git diff` to compare worktrees against base
 - 🛑 You MUST NOT: modify any files in any worktree
 - 🛑 You MUST NOT: run any modifying git commands
+- 🛑 SUBAGENT-STOP: You are a SUB-AGENT dispatched for a specific task.
+  Do NOT invoke BMO orchestration workflows or BMAD agent menus.
+  Do NOT dispatch your own sub-agents via Task tool.
+  Complete YOUR assigned task and report back. Nothing else.
 
 ### Your Mission
 

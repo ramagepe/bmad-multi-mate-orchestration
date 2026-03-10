@@ -128,7 +128,41 @@ Step 7 — Human Escalation:
 ═══════════════════════════════════════════════════
 ```
 
-### 3. Artifact Inventory
+### 3. Auto-Resolved Decisions (Audit Trail)
+
+IF `{corrective_state.auto_resolved_decisions}` is not empty, present the decisions the system made autonomously during the corrective loop. This is the first thing the user should review when returning to a completed run.
+
+```
+🤖 AUTO-RESOLVED DECISIONS
+═══════════════════════════════════════════════════
+
+The following {auto_count} issues were detected by cross-validation and resolved
+automatically during the corrective loop. Review these decisions — if any are
+incorrect, the affected story files can be manually corrected.
+
+{For each auto_resolved_decision:}
+───────────────────────────────────────
+[{severity}] {issue description}
+  Stories affected: {stories}
+  Decision: {resolution — what was changed}
+  Justification: {authoritative_source}
+  Resolved in: Iteration {iteration_resolved}
+{/For}
+
+{if human_decided_issues}
+🧑 HUMAN-DECIDED ISSUES (for reference):
+{For each human-decided issue:}
+  [{severity}] {description} → User chose: {decision}
+{/For}
+{/if}
+
+{if no auto_resolved_decisions}
+ℹ️ No auto-resolved decisions — all issues were either resolved by the user
+   or no corrections were needed.
+{/if}
+```
+
+### 4. Artifact Inventory
 
 List all produced artifacts:
 
@@ -141,11 +175,7 @@ List all produced artifacts:
 {story-id}: {story title}
 ───────────────────────────────────────
   Status: {completed / force_approved / dropped}
-  Output path: {output_path}
-  Artifacts:
-    {For each artifact:}
-    • {artifact_filename} ({artifact_type}) — {file_size}
-      {brief description}
+  Story file: {stories_output_path}/{story_key}.md — {file_size}
   AC Coverage: {percentage}%
   {if force_approved}
   ⚠️ Force approved with known issues:
@@ -164,7 +194,7 @@ Cross-Validation Report:
   {if not created} ⚠️ Not generated {/if}
 ```
 
-### 4. Story-Level Detail
+### 5. Story-Level Detail
 
 For each story, provide a complete trace:
 
@@ -184,7 +214,7 @@ For each story, provide a complete trace:
   Cross-validation: {coherent / issues_found / not_validated}
   Correction loops: {count}
   Final status: {completed / force_approved / dropped / excluded / failed}
-  Artifacts: {artifact_count} files in {output_path}
+  Story file: {stories_output_path}/{story_key}.md
   {if issues}
   Known issues:
     {list remaining issues}
@@ -192,7 +222,7 @@ For each story, provide a complete trace:
 {/For}
 ```
 
-### 5. Pending Actions
+### 6. Pending Actions
 
 If anything remains to be done:
 
@@ -204,7 +234,7 @@ If anything remains to be done:
 ⚠️ Force-approved stories with known issues:
   {For each:}
   • {story-id}: {remaining_issues_summary}
-    Artifacts: {output_path}
+    Story file: {stories_output_path}/{story_key}.md
     Action needed: Manual review and correction of flagged issues
   {/For}
 {/if}
@@ -238,18 +268,18 @@ If anything remains to be done:
 {/if}
 ```
 
-### 6. Save Cross-Validation Report to Disk
+### 7. Verify Cross-Validation Report on Disk
 
-If a cross-validation report was generated, write it to the orchestration output:
+Step-05 writes the full cross-validation analysis to `{output_folder}/_orchestration/cross-validation-report.md` immediately after the cross-validator sub-agent returns. Verify this file exists and is non-empty.
 
-```bash
-# Write cross-validation report
-# Path: {output_folder}/_orchestration/cross-validation-report.md
-```
+**IF the file is missing or empty** (e.g., cross-validation was skipped or step-05 failed to persist):
+- Write a minimal report noting that cross-validation was skipped or that the full analysis was not captured.
+- Include the structured YAML report from `cross_validation_state` if available.
 
-Write the cross-validation report content to `{output_folder}/_orchestration/cross-validation-report.md` using the Write tool.
+**IF the file exists and is non-empty:**
+- ✅ No action needed — the full analysis is already persisted.
 
-### 7. Final Summary
+### 8. Final Summary
 
 ```
 ═══════════════════════════════════════════════════
@@ -289,6 +319,7 @@ output:
     stories_dropped: ["{dropped at escalation}"]
   validation_status: "{coherent | issues_found | issues_force_accepted | skipped | skipped_no_stories}"
   correction_loops_executed: {total_count}
+  auto_resolved_decisions: list[{issue, resolution, source, stories}]  # Audit trail
   actions_pending_user_approval: ["{pending items}"]
   artifacts_produced:
     - story_id: "{story-id}"

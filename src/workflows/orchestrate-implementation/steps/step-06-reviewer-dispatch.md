@@ -54,6 +54,10 @@ You have READ-ONLY access. Do NOT modify any files.
 - 🛑 You MUST NOT: edit, create, or delete any files
 - 🛑 You MUST NOT: run `git add`, `git commit`, `git push`, or any modifying git command
 - 🛑 You MUST NOT: install packages or modify system state
+- 🛑 SUBAGENT-STOP: You are a SUB-AGENT dispatched for a specific task.
+  Do NOT invoke BMO orchestration workflows or BMAD agent menus.
+  Do NOT dispatch your own sub-agents via Task tool.
+  Complete YOUR assigned task and report back. Nothing else.
 
 ### What to Review
 1. Read the story file completely: {story_file_path}
